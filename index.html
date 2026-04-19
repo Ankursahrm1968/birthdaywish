@@ -434,51 +434,31 @@ setInterval(spawnHeart,400);
 let isOpen=false,musicOn=false,audioCtx=null,nodes=[];
 
 function buildMusic(ctx){
-  const base=[261.63,293.66,329.63,349.23,392,440,493.88,523.25];
-  const melody=[
-    [392,0],[440,0.45],[493.88,0.9],[523.25,1.35],[587.33,1.8],[523.25,2.25],
-    [493.88,2.7],[440,3.15],[392,3.6],[349.23,4.05],[329.63,4.5],[293.66,4.95],
-    [261.63,5.4],[293.66,5.85],[329.63,6.3],[392,6.75],
-    [440,7.2],[493.88,7.65],[523.25,8.1],[587.33,8.55],[659.25,9.0],[587.33,9.45],
-    [523.25,9.9],[493.88,10.35],[440,10.8],[392,11.25],[349.23,11.7],[329.63,12.15],
-    [293.66,12.6],[261.63,13.05],[293.66,13.5],[349.23,13.95],
-    [392,14.4],[440,14.85],[493.88,15.3],[440,15.75],[392,16.2],[349.23,16.65]
-  ];
-  const loopLen=17.2;
-  const master=ctx.createGain();master.gain.value=0.15;
-  const rev=ctx.createConvolver();
-  const rb=ctx.createBuffer(2,ctx.sampleRate*2.5,ctx.sampleRate);
-  for(let c=0;c<2;c++){const d=rb.getChannelData(c);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2.5)*0.45;}
-  rev.buffer=rb;
-  master.connect(rev);rev.connect(ctx.destination);master.connect(ctx.destination);
-  nodes.push(master,rev);
-  function loop(start){
-    melody.forEach(([freq,t])=>{
-      const o=ctx.createOscillator(),g=ctx.createGain();
-      o.type='sine';o.frequency.value=freq;
-      const at=start+t;
-      g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(0.55,at+0.04);
-      g.gain.exponentialRampToValueAtTime(0.001,at+0.38);
-      o.connect(g);g.connect(master);o.start(at);o.stop(at+0.42);
-      nodes.push(o,g);
-    });
-    const tid=setTimeout(()=>{if(musicOn)loop(ctx.currentTime+0.08);},loopLen*1000-300);
-    nodes.push({disconnect:()=>clearTimeout(tid)});
-  }
-  loop(ctx.currentTime+0.05);
 }
 
+let isOpen = false, musicOn = false;
+
+// Create the audio object pointing to your file
+const myAudio = new Audio('./akhri_ishq.mp3');
+myAudio.loop = true; // This makes the song repeat automatically
+
 function toggleMusic(){
-  if(!musicOn){
-    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    if(audioCtx.state==='suspended')audioCtx.resume();
-    musicOn=true;buildMusic(audioCtx);
-    document.querySelectorAll('.w').forEach(w=>w.classList.remove('p'));
-    document.getElementById('mlabel').textContent='Playing — Akhri Ishq ♪';
+if (!musicOn) {
+    // Play the actual MP3 file
+    myAudio.play().catch(err => console.log("Browser blocked autoplay:", err));
+    musicOn = true;
+    
+    // Animate the sound waves and update text
+    document.querySelectorAll('.w').forEach(w => w.classList.remove('p'));
+    document.getElementById('mlabel').textContent = 'Playing — Akhri Ishq ♪';
   } else {
-    musicOn=false;nodes.forEach(n=>{try{n.disconnect();}catch(e){}});nodes=[];
-    document.querySelectorAll('.w').forEach(w=>w.classList.add('p'));
-    document.getElementById('mlabel').textContent='Akhri Ishq — Dhurandar ♡';
+    // Pause the MP3 file
+    myAudio.pause();
+    musicOn = false;
+    
+    // Stop the sound waves and reset text
+    document.querySelectorAll('.w').forEach(w => w.classList.add('p'));
+    document.getElementById('mlabel').textContent = 'Akhri Ishq — Dhurandar ♡';
   }
 }
 
